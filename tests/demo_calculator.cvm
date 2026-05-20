@@ -1,0 +1,49 @@
+// demo_calculator.cvm
+// ----------------------------------------------------------
+// A small calculator that demonstrates every feature of CVM++:
+//   - integer arithmetic with operator precedence
+//   - variables
+//   - comparisons producing booleans
+//   - if/else branching
+//   - while loop with an accumulator
+//
+// It computes results for two hard-coded operands a and b
+// and prints them in a clear, labelled way.
+// ----------------------------------------------------------
+
+a = 24;
+b = 6;
+
+print a;       // operand 1
+print b;       // operand 2
+
+// --- arithmetic ---
+print a + b;   // 30
+print a - b;   // 18
+print a * b;   // 144
+print a / b;   // 4
+
+// --- precedence: (a + b) * 2  vs.  a + b * 2 ---
+print  a + b * 2;     // 24 + 12  = 36
+print (a + b) * 2;    // 30 *  2  = 60
+
+// --- comparisons (print booleans) ---
+print a > b;   // true
+print a < b;   // false
+print a == b;  // false
+
+// --- branching on a comparison ---
+if (a > b) {
+    print 1;          // "a is bigger"
+} else {
+    print 0;
+}
+
+// --- loop: compute a^b using only multiplication ---
+power = 1;
+i = 0;
+while (i < b) {
+    power = power * a;
+    i = i + 1;
+}
+print power;         // 24^6 = 191102976

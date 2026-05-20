@@ -1,0 +1,202 @@
+================================================================================
+  CVM++  —  INSTRUCTIONS
+  How to build and run the compiler + virtual machine
+================================================================================
+
+REQUIREMENTS
+------------
+  * A C++17 compiler  (g++ 7+ , clang++ 5+ , or MSVC 2017+)
+  * make            (optional, simplest way to build)
+  * cmake 3.15+     (optional, alternative way to build)
+
+  No external libraries are required. The whole project is standard C++.
+
+
+PROJECT LAYOUT
+--------------
+  cvm++/
+  +-- include/        public headers
+  |   +-- token.h         token types
+  |   +-- lexer.h         lexer interface
+  |   +-- ast.h           AST node classes
+  |   +-- parser.h        parser interface
+  |   +-- bytecode.h      opcodes, Value, Chunk
+  |   +-- compiler.h      AST -> bytecode
+  |   +-- vm.h            stack-based VM
+  +-- src/            implementations
+  |   +-- lexer.cpp
+  |   +-- parser.cpp
+  |   +-- compiler.cpp
+  |   +-- vm.cpp
+  |   +-- main.cpp        CLI driver
+  +-- tests/          sample .cvm scripts
+  +-- Makefile
+  +-- CMakeLists.txt
+  +-- README.md
+  +-- REPORT.md       project report
+  +-- INSTRUCTIONS.txt   this file
+
+
+================================================================================
+  BUILDING
+================================================================================
+
+Option A — using make (recommended, simplest)
+---------------------------------------------
+    cd cvm++
+    make
+
+This produces an executable named   cvm   in the project root.
+
+
+Option B — using cmake
+----------------------
+    cd cvm++
+    cmake -B build
+    cmake --build build
+
+This produces an executable at   build/bin/cvm   .
+
+
+Option C — manual compile (no build system at all)
+--------------------------------------------------
+    cd cvm++
+    g++ -std=c++17 -O2 -Iinclude src/*.cpp -o cvm
+
+
+================================================================================
+  RUNNING
+================================================================================
+
+CVM++ has three modes:
+
+  MODE 1  --  compile and run from source (one-shot)
+      ./cvm <script.cvm>
+
+  MODE 2  --  compile source to a portable bytecode file
+      ./cvm <script.cvm> -o <output.cvmb>
+
+  MODE 3  --  run a previously-compiled bytecode file (no source needed)
+      ./cvm --run <output.cvmb>
+
+This separation means you can compile on one machine and ship just the
+small .cvmb file to another machine, exactly like Java does with .class
+files. The bytecode file is fully self-contained.
+
+Show internal stages with flags (any combination, source mode only):
+    ./cvm <script.cvm> --tokens
+    ./cvm <script.cvm> --ast
+    ./cvm <script.cvm> --bytecode
+    ./cvm <script.cvm> --trace
+    ./cvm <script.cvm> --tokens --ast --bytecode --trace
+
+Flag meanings:
+    --tokens     print the lexer's token stream
+    --ast        print the abstract syntax tree
+    --bytecode   disassemble compiled bytecode
+    --trace      trace every VM instruction (sent to stderr; works in both
+                 source mode and --run mode)
+
+
+================================================================================
+  EXAMPLES
+================================================================================
+
+Run a sample program directly from source:
+    ./cvm tests/sample4_fibonacci.cvm
+    # prints:  0 1 1 2 3 5 8 13 21 34  (one per line)
+
+Compile to a portable bytecode file:
+    ./cvm tests/sample4_fibonacci.cvm -o fib.cvmb
+    # creates fib.cvmb (about 100 bytes)
+
+Run that bytecode file (no source code present!):
+    ./cvm --run fib.cvmb
+    # same output as before
+
+Send the .cvmb file to another machine (USB, email, whatever) and run:
+    ./cvm --run fib.cvmb
+    # works identically, because the bytecode file is self-contained
+
+See compilation stages for a tiny program:
+    ./cvm tests/demo_calculator.cvm --tokens --ast --bytecode
+
+Watch the VM execute step by step:
+    ./cvm tests/demo_truth_machine.cvm --trace
+
+Run every sample:
+    make run
+
+
+================================================================================
+  THE BYTECODE FILE FORMAT (.cvmb)
+================================================================================
+
+The bytecode file is a small binary format. Header bytes are "CVMB" (the
+"magic number"), so the loader can sanity-check the file before trying
+to execute it. After the magic comes a version byte, then the constant
+pool, then the raw code stream.
+
+  Bytes 0..3  : magic 'C' 'V' 'M' 'B'
+  Byte 4      : format version (currently 1)
+  Bytes 5..8  : number of constants (uint32, big-endian)
+  For each constant:
+      Byte    : tag (0 = int, 1 = bool)
+      If int  : 4 bytes (int32, big-endian)
+      If bool : 1 byte (0 or 1)
+  uint32      : code length in bytes
+  bytes       : raw bytecode (one opcode byte at a time, with 2-byte
+                operands where applicable)
+
+
+================================================================================
+  THE LANGUAGE  --  QUICK REFERENCE
+================================================================================
+
+Types:        integers, booleans
+Operators:    +  -  *  /     (integer arithmetic)
+              == < >          (comparison, produces bool)
+              =               (assignment)
+Statements:   x = expr ;
+              print expr ;
+              if (cond) { ... } else { ... }
+              while (cond) { ... }
+Comments:     // line comments only
+Literals:     42, true, false
+
+Example program:
+    i = 0;
+    while (i < 5) {
+        print i;
+        i = i + 1;
+    }
+
+
+================================================================================
+  CLEANING UP
+================================================================================
+
+    make clean        (removes the cvm binary)
+    rm -rf build      (removes cmake build directory)
+
+
+================================================================================
+  TROUBLESHOOTING
+================================================================================
+
+"g++: command not found"
+    Install a C++17 compiler.
+    Linux:   sudo apt install g++ make
+    macOS:   xcode-select --install
+    Windows: install MSYS2/MinGW, or use Visual Studio's cl.exe
+
+"undefined reference to ..." at link time
+    Make sure all src/*.cpp files are compiled together (not just main.cpp).
+
+"Lex error" / "Parse error" / "Compile error" / "Runtime error"
+    These are CVM++ errors from your script, not build errors.
+    The message includes a line number for lex/parse errors.
+
+Need a sanity check?
+    ./cvm tests/sample1_arithmetic.cvm
+    Should print:  14 6 40 2 14 20  (one per line)

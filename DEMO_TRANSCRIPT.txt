@@ -1,0 +1,254 @@
+================================================================
+  DEMO SESSION TRANSCRIPT  (actual output of every command)
+================================================================
+
+$ make clean && make
+rm -f cvm
+g++ -std=c++17 -Wall -Wextra -Wpedantic -O2 -Iinclude src/lexer.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/main.cpp -o cvm
+
+================================================================
+$ cat tests/demo_calculator.cvm
+================================================================
+// demo_calculator.cvm
+// ----------------------------------------------------------
+// A small calculator that demonstrates every feature of CVM++:
+//   - integer arithmetic with operator precedence
+//   - variables
+//   - comparisons producing booleans
+//   - if/else branching
+//   - while loop with an accumulator
+//
+// It computes results for two hard-coded operands a and b
+// and prints them in a clear, labelled way.
+// ----------------------------------------------------------
+
+a = 24;
+b = 6;
+
+print a;       // operand 1
+print b;       // operand 2
+
+// --- arithmetic ---
+print a + b;   // 30
+print a - b;   // 18
+print a * b;   // 144
+print a / b;   // 4
+
+// --- precedence: (a + b) * 2  vs.  a + b * 2 ---
+print  a + b * 2;     // 24 + 12  = 36
+print (a + b) * 2;    // 30 *  2  = 60
+
+// --- comparisons (print booleans) ---
+print a > b;   // true
+print a < b;   // false
+print a == b;  // false
+
+// --- branching on a comparison ---
+if (a > b) {
+    print 1;          // "a is bigger"
+} else {
+    print 0;
+}
+
+// --- loop: compute a^b using only multiplication ---
+power = 1;
+i = 0;
+while (i < b) {
+    power = power * a;
+    i = i + 1;
+}
+print power;         // 24^6 = 191102976
+
+================================================================
+$ ./cvm tests/demo_calculator.cvm
+================================================================
+=== OUTPUT ===
+24
+6
+30
+18
+144
+4
+36
+60
+true
+false
+false
+1
+191102976
+
+================================================================
+$ ./cvm tests/demo_calculator.cvm --tokens   (first 25 lines)
+================================================================
+=== TOKENS ===
+Line 14  IDENTIFIER(a)
+Line 14  ASSIGN(=)
+Line 14  NUMBER(24)
+Line 14  SEMICOLON(;)
+Line 15  IDENTIFIER(b)
+Line 15  ASSIGN(=)
+Line 15  NUMBER(6)
+Line 15  SEMICOLON(;)
+Line 17  PRINT(print)
+Line 17  IDENTIFIER(a)
+Line 17  SEMICOLON(;)
+Line 18  PRINT(print)
+Line 18  IDENTIFIER(b)
+Line 18  SEMICOLON(;)
+Line 21  PRINT(print)
+Line 21  IDENTIFIER(a)
+Line 21  PLUS(+)
+Line 21  IDENTIFIER(b)
+Line 21  SEMICOLON(;)
+Line 22  PRINT(print)
+Line 22  IDENTIFIER(a)
+Line 22  MINUS(-)
+Line 22  IDENTIFIER(b)
+Line 22  SEMICOLON(;)
+
+================================================================
+$ ./cvm tests/demo_calculator.cvm --ast      (first 30 lines)
+================================================================
+=== AST ===
+Assign(a)
+  Number(24)
+Assign(b)
+  Number(6)
+Print
+  Var(a)
+Print
+  Var(b)
+Print
+  Binary(PLUS)
+    Var(a)
+    Var(b)
+Print
+  Binary(MINUS)
+    Var(a)
+    Var(b)
+Print
+  Binary(STAR)
+    Var(a)
+    Var(b)
+Print
+  Binary(SLASH)
+    Var(a)
+    Var(b)
+Print
+  Binary(PLUS)
+    Var(a)
+    Binary(STAR)
+      Var(b)
+
+================================================================
+$ ./cvm tests/demo_calculator.cvm --bytecode (first 30 lines)
+================================================================
+=== BYTECODE ===
+-- constants --
+  [0] 24
+  [1] 6
+  [2] 2
+  [3] 2
+  [4] 1
+  [5] 0
+  [6] 1
+  [7] 0
+  [8] 1
+-- code --
+0000  PUSH_CONST    0  ; 24
+0003  STORE         0
+0006  PUSH_CONST    1  ; 6
+0009  STORE         1
+0012  LOAD          0
+0015  PRINT         
+0016  LOAD          1
+0019  PRINT         
+0020  LOAD          0
+0023  LOAD          1
+0026  ADD           
+0027  PRINT         
+0028  LOAD          0
+0031  LOAD          1
+0034  SUB           
+0035  PRINT         
+0036  LOAD          0
+0039  LOAD          1
+
+================================================================
+$ cat tests/demo_truth_machine.cvm
+================================================================
+// demo_truth_machine.cvm
+// ----------------------------------------------------------
+// The classic "Truth Machine":
+//   - if the input is 0, print 0 once and halt
+//   - if the input is 1, print 1 forever (we cap at 10 here
+//     so the demo actually terminates)
+//
+// CVM++ has no read-from-stdin, so the "input" is the
+// variable `input` set on the first line. Flip it to 0 or 1
+// to see both branches.
+// ----------------------------------------------------------
+
+input = 1;     // try 0 or 1
+
+if (input == 0) {
+    print 0;
+} else {
+    // Print 1 ten times. A real truth machine loops forever:
+    //     while (true) { print 1; }
+    count = 0;
+    while (count < 10) {
+        print 1;
+        count = count + 1;
+    }
+}
+
+================================================================
+$ ./cvm tests/demo_truth_machine.cvm    (input=1)
+================================================================
+=== OUTPUT ===
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+
+================================================================
+$ ./cvm tests/demo_truth_machine.cvm    (with input=0)
+================================================================
+=== OUTPUT ===
+0
+
+================================================================
+$ ./cvm tests/demo_truth_machine.cvm --trace  (first 25 lines)
+================================================================
+=== OUTPUT ===
+[ip=0  stack=] PUSH_CONST
+[ip=3  stack=1 ] STORE
+[ip=6  stack=] LOAD
+[ip=9  stack=1 ] PUSH_CONST
+[ip=12  stack=1 0 ] EQ
+[ip=13  stack=false ] JMP_IF_FALSE
+[ip=23  stack=] PUSH_CONST
+[ip=26  stack=0 ] STORE
+[ip=29  stack=] LOAD
+[ip=32  stack=0 ] PUSH_CONST
+[ip=35  stack=0 10 ] LT
+[ip=36  stack=true ] JMP_IF_FALSE
+[ip=39  stack=] PUSH_CONST
+[ip=42  stack=1 ] PRINT
+1
+[ip=43  stack=] LOAD
+[ip=46  stack=0 ] PUSH_CONST
+[ip=49  stack=0 1 ] ADD
+[ip=50  stack=1 ] STORE
+[ip=53  stack=] JMP
+[ip=29  stack=] LOAD
+[ip=32  stack=1 ] PUSH_CONST
+[ip=35  stack=1 10 ] LT
+[ip=36  stack=true ] JMP_IF_FALSE

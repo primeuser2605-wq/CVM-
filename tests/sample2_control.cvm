@@ -1,0 +1,32 @@
+// sample2_control.cvm
+// Demonstrates: comparisons, if/else, booleans.
+
+x = 42;
+
+if (x < 100) {
+    print 1;       // taken
+} else {
+    print 0;
+}
+
+if (x == 42) {
+    print 42;      // taken
+}
+
+// Nested if
+y = 5;
+if (y > 0) {
+    if (y < 10) {
+        print 7;   // taken
+    }
+}
+
+// Boolean literals work as conditions too
+if (true) {
+    print 1;
+}
+if (false) {
+    print 999;     // NOT taken
+} else {
+    print 2;
+}

@@ -1,0 +1,25 @@
+// demo_truth_machine.cvm
+// ----------------------------------------------------------
+// The classic "Truth Machine":
+//   - if the input is 0, print 0 once and halt
+//   - if the input is 1, print 1 forever (we cap at 10 here
+//     so the demo actually terminates)
+//
+// CVM++ has no read-from-stdin, so the "input" is the
+// variable `input` set on the first line. Flip it to 0 or 1
+// to see both branches.
+// ----------------------------------------------------------
+
+input = 1;     // try 0 or 1
+
+if (input == 0) {
+    print 0;
+} else {
+    // Print 1 ten times. A real truth machine loops forever:
+    //     while (true) { print 1; }
+    count = 0;
+    while (count < 10) {
+        print 1;
+        count = count + 1;
+    }
+}

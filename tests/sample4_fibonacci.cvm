@@ -1,0 +1,15 @@
+// sample4_fibonacci.cvm
+// Prints the first 10 Fibonacci numbers.
+
+a = 0;
+b = 1;
+count = 0;
+
+while (count < 10) {
+    print a;
+    temp = a + b;
+    a = b;
+    b = temp;
+    count = count + 1;
+}
+// Expected: 0 1 1 2 3 5 8 13 21 34
