@@ -320,6 +320,72 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* ============================================================================
+   Video demo section
+   ========================================================================= */
+.section-video {
+  padding: 88px 0 96px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+}
+.video-head { margin-bottom: 40px; }
+.video-eyebrow {
+  display: inline-block;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 16px;
+  padding: 4px 10px;
+  background: var(--accent-soft);
+  border-radius: 3px;
+}
+.video-wrap {
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: 8px;
+  box-shadow:
+    0 1px 0 rgba(20, 32, 46, 0.04),
+    0 8px 32px -8px rgba(20, 32, 46, 0.18);
+  overflow: hidden;
+  position: relative;
+}
+.video-wrap::before {
+  /* Subtle "device chrome" — a hairline header strip with three dots */
+  content: '';
+  display: block;
+  height: 22px;
+  background:
+    radial-gradient(circle at 14px 11px, #FF6058 0 4px, transparent 4.5px),
+    radial-gradient(circle at 32px 11px, #FFBD2E 0 4px, transparent 4.5px),
+    radial-gradient(circle at 50px 11px, #28C940 0 4px, transparent 4.5px),
+    #1A2028;
+  border-radius: 4px 4px 0 0;
+  margin: -8px -8px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.video-player {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0 0 4px 4px;
+  background: #000;
+}
+
+@media (max-width: 640px) {
+  .section-video { padding: 56px 0 64px; }
+  .video-wrap { padding: 6px; }
+  .video-wrap::before { height: 18px; margin: -6px -6px 6px;
+    background:
+      radial-gradient(circle at 12px 9px, #FF6058 0 3.5px, transparent 4px),
+      radial-gradient(circle at 28px 9px, #FFBD2E 0 3.5px, transparent 4px),
+      radial-gradient(circle at 44px 9px, #28C940 0 3.5px, transparent 4px),
+      #1A2028;
+  }
+}
+
+/* ============================================================================
    Sections
    ========================================================================= */
 .section { padding: 96px 0; }
