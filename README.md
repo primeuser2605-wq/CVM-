@@ -2,6 +2,8 @@
 
 A tiny scripting language that compiles to bytecode and runs on a **stack-based virtual machine**, built from scratch in modern C++17. The full pipeline — lexer, parser, compiler, VM — is about 700 lines of well-commented code.
 
+https://primeuser2605-wq.github.io/CVM-/#pipeline
+
 ## The Pipeline
 
 ```
